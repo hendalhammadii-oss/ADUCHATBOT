@@ -352,18 +352,8 @@ SECTIONS = [
 
 if not st.session_state.get("student"):
     st.markdown('<div class="portal-topbar"><span>☰ &nbsp; Main Menu</span><span class="portal-brand">ADU Self Service — Student Assistant</span><span class="portal-meta">🔒 Secure demo</span></div>', unsafe_allow_html=True)
-    st.markdown('<div class="breadcrumb">Main Menu &gt; Self Service</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-heading">Self Service</div><div class="section-subtitle">Sign in to view your student information and use the ADU Assistant.</div>', unsafe_allow_html=True)
-    left, right = st.columns([1.25, 1], gap="large")
-    with left:
-        st.markdown("### Student Self Service")
-        st.write("Explore the student portal dashboard and get help with common university services.")
-        for i in range(0, len(SECTIONS), 2):
-            a, b = st.columns(2)
-            for col, item in zip((a,b), SECTIONS[i:i+2]):
-                with col:
-                    st.markdown(f'<div class="tile"><div class="tile-title">{item[2]} &nbsp; {item[0]}</div><div class="tile-desc">{item[1]}</div></div>', unsafe_allow_html=True)
-    with right:
+    _, sign_in, _ = st.columns([1, 1.2, 1], gap="large")
+    with sign_in:
         st.markdown("### Sign in")
         st.info("This is an unofficial concept prototype using fictional student records. Do not enter your real university password or personal information.")
         with st.form("login_form"):
