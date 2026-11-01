@@ -90,3 +90,5 @@ ACC200, BUS204, ECO201, MGT255, MKT200, HRM313, and FIN301.
 Course names match the plan; attendance, exam requests, staff and fees remain
 fictional. Demo fees are denominated in AED.
 Try "How many absences do I have in ACC200?" as STU1001.
+
+Sidebar, Self Service cards, headings and navigation buttons now use active theme colors. Blue primary buttons retain white labels in both themes.

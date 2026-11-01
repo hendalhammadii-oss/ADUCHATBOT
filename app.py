@@ -238,18 +238,18 @@ header[data-testid="stHeader"] { background: transparent; }
 .portal-topbar { background: linear-gradient(100deg,#172b3d,#233c52); color: white; padding: 13px 22px; border-radius: 8px; display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; box-shadow:0 2px 8px #0c22331a; }
 .portal-brand { font-weight:700; letter-spacing:.2px; font-size:16px; }
 .portal-meta { color:#d6e3ef; font-size:12px; }
-.breadcrumb { color:#1d5ca7; font-size:13px; margin:4px 0 8px; }
-.section-heading { color:#1559a6; font-size:27px; font-weight:700; margin:0 0 5px; }
-.section-subtitle { color:#536273; font-size:13px; margin-bottom:15px; }
-.tile { background:#fff; border:1px solid #dce3eb; border-radius:7px; padding:14px 15px; min-height:104px; margin-bottom:10px; box-shadow:0 1px 2px #102b4410; }
-.tile-title { color:#155ba8; font-weight:700; font-size:14px; margin-bottom:5px; }
-.tile-desc { color:#526071; font-size:12px; line-height:1.45; }
+.breadcrumb { color:color-mix(in srgb, var(--text-color) 82%, #287ac5); font-size:13px; margin:4px 0 8px; }
+.section-heading { color:color-mix(in srgb, var(--text-color) 82%, #287ac5); font-size:27px; font-weight:700; margin:0 0 5px; }
+.section-subtitle { color:var(--text-color); font-size:13px; margin-bottom:15px; }
+.tile { background:var(--secondary-background-color); border:1px solid color-mix(in srgb, var(--text-color) 20%, transparent); border-radius:7px; padding:14px 15px; min-height:104px; margin-bottom:10px; box-shadow:0 1px 2px #102b4410; }
+.tile-title { color:color-mix(in srgb, var(--text-color) 82%, #287ac5); font-weight:700; font-size:14px; margin-bottom:5px; }
+.tile-desc { color:var(--text-color); font-size:12px; line-height:1.45; }
 .tile-icon { font-size:16px; margin-right:7px; }
 .assistant-head { background:linear-gradient(110deg,#14569b,#2b70b9); color:white; padding:15px 16px; border-radius:10px 10px 0 0; }
 .assistant-title { font-size:16px; font-weight:700; }
 .assistant-sub { font-size:11px; color:#e2efff; margin-top:3px; }
-.assistant-shell { background:white; border:1px solid #d5e0ec; border-radius:11px; box-shadow:0 4px 16px #1a35551c; overflow:hidden; }
-.assistant-note { color:#758395; font-size:11px; text-align:center; padding:6px 10px 0; }
+.assistant-shell { background:var(--secondary-background-color); border:1px solid color-mix(in srgb, var(--text-color) 20%, transparent); border-radius:11px; box-shadow:0 4px 16px #1a35551c; overflow:hidden; }
+.assistant-note { color:var(--text-color); font-size:11px; text-align:center; padding:6px 10px 0; }
 /* Pair message foreground and background using the active Streamlit theme. */
 [data-testid="stChatMessage"] {
     background-color: var(--secondary-background-color);
@@ -260,9 +260,34 @@ header[data-testid="stHeader"] { background: transparent; }
     color: var(--text-color);
 }
 footer {visibility:hidden;}
-[data-testid="stSidebar"] { background:#edf2f7; border-right:1px solid #d9e1e9; }
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color:#24415f; }
-.stButton>button { border-radius:7px; }
+[data-testid="stSidebar"] { background:var(--secondary-background-color); border-right:1px solid color-mix(in srgb, var(--text-color) 20%, transparent); }
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color:var(--text-color); }
+
+/* Explicit pairs also cover sidebar navigation and Self Service actions. */
+.stButton>button {
+    border-radius:7px;
+    background:var(--background-color);
+    color:var(--text-color);
+    border:1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+}
+.stButton>button p { color:inherit; }
+.stButton>button:hover {
+    background:var(--secondary-background-color);
+    color:var(--text-color);
+    border-color:#4795df;
+}
+.stButton>button:focus-visible {
+    outline:3px solid #4795df;
+    outline-offset:2px;
+}
+.stButton>button[kind="primary"] {
+    background:#14569b;
+    color:#ffffff;
+    border-color:#4795df;
+}
+.stButton>button[kind="primary"]:hover { background:#10477f; }
+.stButton>button:disabled { opacity:0.55; }
+
 @media (max-width: 900px) { .portal-topbar {padding:10px 12px;} .section-heading{font-size:23px;} }
 </style>
 """, unsafe_allow_html=True)
