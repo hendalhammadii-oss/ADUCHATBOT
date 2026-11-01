@@ -228,6 +228,16 @@ def answer_question(student_id: str, question: str):
 
 st.set_page_config(page_title="ADU Self Service | Student Assistant", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
 
+# Resolve colors from Streamlit's selected theme, including Settings > Theme.
+dark_mode = st.context.theme.type == "dark"
+palette = {
+    "background": "#0e1117" if dark_mode else "#f5f7fa",
+    "surface": "#1c2533" if dark_mode else "#ffffff",
+    "text": "#eef3fa" if dark_mode else "#1c2d3f",
+    "button": "#293c55" if dark_mode else "#e7eff8",
+    "border": "#7189a6" if dark_mode else "#8ba5c2",
+    "hover": "#354e6e" if dark_mode else "#d6e5f5",
+}
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -266,31 +276,36 @@ footer {visibility:hidden;}
 /* Explicit pairs also cover sidebar navigation and Self Service actions. */
 .stButton>button {
     border-radius:7px;
-    background:var(--background-color);
-    color:var(--text-color);
-    border:1px solid color-mix(in srgb, var(--text-color) 30%, transparent);
+    background:BUTTON_FILL !important;
+    color:var(--text-color) !important;
+    border:1px solid BUTTON_BORDER !important;
 }
 .stButton>button p { color:inherit; }
 .stButton>button:hover {
-    background:var(--secondary-background-color);
-    color:var(--text-color);
-    border-color:#4795df;
+    background:BUTTON_HOVER !important;
+    color:var(--text-color) !important;
+    border-color:#4795df !important;
 }
 .stButton>button:focus-visible {
     outline:3px solid #4795df;
     outline-offset:2px;
 }
 .stButton>button[kind="primary"] {
-    background:#14569b;
-    color:#ffffff;
-    border-color:#4795df;
+    background:#14569b !important;
+    color:#ffffff !important;
+    border-color:#4795df !important;
 }
-.stButton>button[kind="primary"]:hover { background:#10477f; }
+.stButton>button[kind="primary"]:hover { background:#10477f !important; }
 .stButton>button:disabled { opacity:0.55; }
 
 @media (max-width: 900px) { .portal-topbar {padding:10px 12px;} .section-heading{font-size:23px;} }
 </style>
-""", unsafe_allow_html=True)
+""".replace("var(--background-color)", palette["background"])
+    .replace("var(--secondary-background-color)", palette["surface"])
+    .replace("var(--text-color)", palette["text"])
+    .replace("BUTTON_FILL", palette["button"])
+    .replace("BUTTON_BORDER", palette["border"])
+    .replace("BUTTON_HOVER", palette["hover"]), unsafe_allow_html=True)
 
 SECTIONS = [
     ("Student Center", "Manage school-related activities", "▣"),
