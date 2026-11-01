@@ -164,7 +164,34 @@ def get_exam_requests(student_id: str, course_code=None):
     return [dict(row) for row in rows]
 
 
+PORTAL_GUIDES = {'enroll': ('To enroll in a class:', ['Click **Enrollment**.', 'Select **Enrollment: Add Class**.', 'Select the term.', 'Click **Search**.', 'Select the subject.', 'Select the class you want.', 'Click **Next**.', 'Select **Proceed to Next Step**.', 'Click **Finish Enrolling**.']), 'pay': ('To make a payment:', ['Click **Campus Finances**.', 'Select **Make Payment**.', 'Follow the steps provided on the payment page.']), 'exam': ('To request a makeup exam:', ['Click **Makeup Exam Requests**.', 'Click the arrow beside **Submit a New Request**.', 'Select your career and term.', 'Select **Click here to add a new request**.', 'Select the desired course.', 'Select **Assessment Type**, **Absence Date**, and **Excuse Reason**.', 'Enter your justification or reason in **Student Comments**.', 'Attach supporting documents.', 'Click **Submit** to initiate the request.']), 'attendance': ('To check your attendance:', ['Click **Attendance**.', 'Select **View My Attendance**.', 'Select the term.', 'Click **Search**.']), 'schedule': ('To find your class schedule:', ['Click **Enrollment**.', 'Select **My Class Schedule**.', 'Select the term.']), 'drop': ('To drop classes:', ['Click **Enrollment**.', 'Select **Enrollment: Drop Classes**.', 'Select the term.', 'Select the desired class.', 'Click **Drop Selected Classes**.', 'Click **Finish Dropping**.'])}
+
+def portal_guide(question):
+    q = " ".join(re.sub(r"[^a-z0-9 ]", " ", question.lower()).split())
+    how = any(x in q for x in ("how ", "where ", "steps", "guide"))
+    key = None
+    if "schedule" in q or "timetable" in q:
+        key = "schedule"
+    elif ("drop" in q or "withdraw" in q) and ("class" in q or "course" in q):
+        key = "drop"
+    elif any(x in q for x in ("makeup", "make up", "resit")) and any(x in q for x in ("request", "apply", "submit")) and not any(x in q for x in ("status", "approved", "rejected", "pending")):
+        key = "exam"
+    elif ("attendance" in q or "absences" in q) and how and any(x in q for x in ("check", "view", "find", "see", "access")):
+        key = "attendance"
+    elif any(x in q for x in ("enroll", "enrol", "register", "add class", "add a class", "add course", "add a course")) and not any(x in q for x in ("drop", "status")):
+        key = "enroll"
+    elif (how and ("pay" in q or "payment" in q)) or q in ("make payment", "make a payment"):
+        key = "pay"
+    if key:
+        title, steps = PORTAL_GUIDES[key]
+        return title + "\n\n" + "\n".join(f"{i}. {step}" for i, step in enumerate(steps, 1))
+    return None
+
+
 def answer_question(student_id: str, question: str):
+    guide = portal_guide(question)
+    if guide:
+        return guide
     classification = classify_with_ollama(question) or classify_fallback(question)
     intent = classification["intent"]
     course_code = classification.get("course_code")
@@ -439,11 +466,11 @@ with assistant_col:
                 st.markdown(message["content"])
     st.caption("Suggested questions")
     quick_cols = st.columns(2)
-    quick_questions = ["All absences", "At-risk classes", "Balance", "Payment"]
+    quick_questions = ["All absences", "Class schedule", "Balance", "Payment"]
     for col, q in zip(quick_cols * 2, quick_questions):
         with col:
             if st.button(q, key=f"quick_{q}", use_container_width=True):
-                mapped = {"All absences":"How many absences do I have?", "At-risk classes":"Which classes have the most absences?", "Balance":"How much do I owe?", "Payment":"When is my payment deadline?"}
+                mapped = {"All absences":"How many absences do I have?", "Class schedule":"How do I find my class schedule?", "Balance":"How much do I owe?", "Payment":"When is my payment deadline?"}
                 st.session_state.pending_question = mapped[q]
                 st.rerun()
     question = st.chat_input("Ask ADU Assistant...")
