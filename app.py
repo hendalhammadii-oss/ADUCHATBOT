@@ -174,7 +174,7 @@ def portal_guide(question):
         key = "schedule"
     elif ("drop" in q or "withdraw" in q) and ("class" in q or "course" in q):
         key = "drop"
-    elif any(x in q for x in ("makeup", "make up", "resit")) and any(x in q for x in ("request", "apply", "submit")) and not any(x in q for x in ("status", "approved", "rejected", "pending")):
+    elif any(x in q for x in ("makeup", "make up", "resit")) and (any(x in q for x in ("request", "apply", "submit")) or q in ("makeup exam", "make up exam", "makeup exams", "make up exams")) and not any(x in q for x in ("status", "approved", "rejected", "pending")):
         key = "exam"
     elif ("attendance" in q or "absences" in q) and how and any(x in q for x in ("check", "view", "find", "see", "access")):
         key = "attendance"
@@ -470,7 +470,7 @@ with assistant_col:
     for col, q in zip(quick_cols * 2, quick_questions):
         with col:
             if st.button(q, key=f"quick_{q}", use_container_width=True):
-                mapped = {"All absences":"How many absences do I have?", "Class schedule":"How do I find my class schedule?", "Balance":"How much do I owe?", "Payment":"When is my payment deadline?"}
+                mapped = {"All absences":"How many absences do I have?", "Class schedule":"How do I find my class schedule?", "Balance":"How much do I owe?", "Payment":"How do I pay?"}
                 st.session_state.pending_question = mapped[q]
                 st.rerun()
     question = st.chat_input("Ask ADU Assistant...")
