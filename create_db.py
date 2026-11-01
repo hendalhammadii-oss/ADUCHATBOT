@@ -38,7 +38,7 @@ def main():
         total_due REAL NOT NULL CHECK (total_due >= 0),
         amount_paid REAL NOT NULL CHECK (amount_paid >= 0),
         payment_deadline TEXT,
-        currency TEXT NOT NULL DEFAULT 'SAR'
+        currency TEXT NOT NULL DEFAULT 'AED'
     );
 
     CREATE TABLE exam_requests (
@@ -55,20 +55,20 @@ def main():
     """)
 
     students = [
-        ("STU1001", "Ahmed Hassan", "ahmed@example.test", "Computer Science", pin_hash("1234")),
+        ("STU1001", "Ahmed Hassan", "ahmed@example.test", "Business Administration", pin_hash("1234")),
         ("STU1002", "Sara Ali", "sara@example.test", "Business Administration", pin_hash("2468")),
-        ("STU1003", "Omar Ibrahim", "omar@example.test", "Engineering", pin_hash("1357")),
+        ("STU1003", "Omar Ibrahim", "omar@example.test", "Business Administration", pin_hash("1357")),
     ]
     conn.executemany("INSERT INTO students VALUES (?, ?, ?, ?, ?)", students)
 
     attendance = [
-        ("STU1001", "CS101", "Introduction to Programming", "Fall 2026", 4),
-        ("STU1001", "MATH120", "Calculus I", "Fall 2026", 2),
-        ("STU1001", "ENG105", "Academic English", "Fall 2026", 1),
-        ("STU1002", "BUS210", "Principles of Management", "Fall 2026", 3),
-        ("STU1002", "ECON101", "Introduction to Economics", "Fall 2026", 1),
-        ("STU1003", "ENG220", "Engineering Materials", "Fall 2026", 5),
-        ("STU1003", "MATH240", "Applied Mathematics", "Fall 2026", 2),
+        ("STU1001", "ACC200", "Principles of Financial Accounting", "Fall 2026", 4),
+        ("STU1001", "BUS204", "Business Research Methods", "Fall 2026", 2),
+        ("STU1001", "ECO201", "Principles of Microeconomics", "Fall 2026", 1),
+        ("STU1002", "MGT255", "Management and Org. Behavior", "Fall 2026", 3),
+        ("STU1002", "MKT200", "Principles of Marketing", "Fall 2026", 1),
+        ("STU1003", "HRM313", "Human Resource Management", "Fall 2026", 5),
+        ("STU1003", "FIN301", "Managerial Finance", "Fall 2026", 2),
     ]
     conn.executemany(
         """INSERT INTO attendance
@@ -78,23 +78,23 @@ def main():
     )
 
     fees = [
-        ("STU1001", 5000.00, 2000.00, "2026-11-15", "SAR"),
-        ("STU1002", 7500.00, 7500.00, "2026-11-15", "SAR"),
-        ("STU1003", 6200.00, 1200.00, "2026-11-12", "SAR"),
+        ("STU1001", 5000.00, 2000.00, "2026-11-15", "AED"),
+        ("STU1002", 7500.00, 7500.00, "2026-11-15", "AED"),
+        ("STU1003", 6200.00, 1200.00, "2026-11-12", "AED"),
     ]
     conn.executemany("INSERT INTO fees VALUES (?, ?, ?, ?, ?)", fees)
 
     exams = [
-        ("STU1001", "CS101", "Introduction to Programming", "Approved",
+        ("STU1001", "ACC200", "Principles of Financial Accounting", "Approved",
          "Dr. Lina Mansour", "lina.mansour@example.test", "2026-11-05",
          "Email the professor to confirm the resit schedule."),
-        ("STU1001", "MATH120", "Calculus I", "Pending",
+        ("STU1001", "BUS204", "Business Research Methods", "Pending",
          "Dr. Samir Nasser", "samir.nasser@example.test", "2026-11-07",
          "Wait for the department's decision before making arrangements."),
-        ("STU1002", "BUS210", "Principles of Management", "Rejected",
+        ("STU1002", "MGT255", "Management and Org. Behavior", "Rejected",
          "Dr. Huda Saleh", "huda.saleh@example.test", None,
          "Contact the academic affairs office if you need clarification."),
-        ("STU1003", "ENG220", "Engineering Materials", "Approved",
+        ("STU1003", "HRM313", "Human Resource Management", "Approved",
          "Dr. Faisal Karim", "faisal.karim@example.test", "2026-11-08",
          "Contact the professor to confirm the exam time and location."),
     ]

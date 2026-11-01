@@ -232,7 +232,7 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 html, body, [class*="css"] { font-family: Inter, sans-serif; }
-.stApp { background: #f5f7fa; }
+.stApp { background: var(--background-color); color: var(--text-color); }
 .block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 1600px; }
 header[data-testid="stHeader"] { background: transparent; }
 .portal-topbar { background: linear-gradient(100deg,#172b3d,#233c52); color: white; padding: 13px 22px; border-radius: 8px; display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; box-shadow:0 2px 8px #0c22331a; }
@@ -250,6 +250,15 @@ header[data-testid="stHeader"] { background: transparent; }
 .assistant-sub { font-size:11px; color:#e2efff; margin-top:3px; }
 .assistant-shell { background:white; border:1px solid #d5e0ec; border-radius:11px; box-shadow:0 4px 16px #1a35551c; overflow:hidden; }
 .assistant-note { color:#758395; font-size:11px; text-align:center; padding:6px 10px 0; }
+/* Pair message foreground and background using the active Streamlit theme. */
+[data-testid="stChatMessage"] {
+    background-color: var(--secondary-background-color);
+    color: var(--text-color);
+}
+[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"],
+[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] :is(p, li, strong, em, span, h1, h2, h3, td, th) {
+    color: var(--text-color);
+}
 footer {visibility:hidden;}
 [data-testid="stSidebar"] { background:#edf2f7; border-right:1px solid #d9e1e9; }
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color:#24415f; }

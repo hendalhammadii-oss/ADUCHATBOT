@@ -75,3 +75,18 @@ The app does not require secrets or Ollama for the hosted demo. Keep the reposit
 - `students.db` — sample SQLite database
 - `requirements.txt` — Python dependencies
 - `.streamlit/config.toml` — portal-style theme
+
+## Updates for the deployed demo
+
+Replace the repository files with this package, including app.py, create_db.py,
+and students.db, then reboot the Streamlit app. The bundled database is already
+rebuilt; running create_db.py again resets all fictional records.
+
+Chat messages use Streamlit's active theme colors in both Light and Dark modes.
+Test both using Streamlit Settings > Theme after signing in.
+
+The sample accounts now use BBA courses from the supplied study plan:
+ACC200, BUS204, ECO201, MGT255, MKT200, HRM313, and FIN301.
+Course names match the plan; attendance, exam requests, staff and fees remain
+fictional. Demo fees are denominated in AED.
+Try "How many absences do I have in ACC200?" as STU1001.
