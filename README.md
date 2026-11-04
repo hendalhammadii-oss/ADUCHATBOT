@@ -92,3 +92,8 @@ fictional. Demo fees are denominated in AED.
 Try "How many absences do I have in ACC200?" as STU1001.
 
 Sidebar, Self Service cards, headings and navigation buttons now use active theme colors. Blue primary buttons retain white labels in both themes.
+
+## Public demo update
+The app opens directly without sign-in and uses fictional STU1001 records for all visitors. Clear chat resets the conversation. Added exam schedule, grades, swap classes, refund, grade appeal and financial aid guides; registration opens enrollment steps.
+
+Payment questions and Campus Finances now show navigation steps only. Financial balances, charges, paid amounts and payment deadlines are not displayed.

@@ -132,16 +132,6 @@ def get_absences(student_id: str, course_code=None):
     return [dict(row) for row in rows]
 
 
-def get_fee_balance(student_id: str):
-    with open_read_only_db() as conn:
-        row = conn.execute(
-            """SELECT total_due, amount_paid, payment_deadline, currency
-               FROM fees WHERE student_id = ?""",
-            (student_id,),
-        ).fetchone()
-    return dict(row) if row else None
-
-
 def get_exam_requests(student_id: str, course_code=None):
     with open_read_only_db() as conn:
         if course_code:
@@ -164,13 +154,25 @@ def get_exam_requests(student_id: str, course_code=None):
     return [dict(row) for row in rows]
 
 
-PORTAL_GUIDES = {'enroll': ('To enroll in a class:', ['Click **Enrollment**.', 'Select **Enrollment: Add Class**.', 'Select the term.', 'Click **Search**.', 'Select the subject.', 'Select the class you want.', 'Click **Next**.', 'Select **Proceed to Next Step**.', 'Click **Finish Enrolling**.']), 'pay': ('To make a payment:', ['Click **Campus Finances**.', 'Select **Make Payment**.', 'Follow the steps provided on the payment page.']), 'exam': ('To request a makeup exam:', ['Click **Makeup Exam Requests**.', 'Click the arrow beside **Submit a New Request**.', 'Select your career and term.', 'Select **Click here to add a new request**.', 'Select the desired course.', 'Select **Assessment Type**, **Absence Date**, and **Excuse Reason**.', 'Enter your justification or reason in **Student Comments**.', 'Attach supporting documents.', 'Click **Submit** to initiate the request.']), 'attendance': ('To check your attendance:', ['Click **Attendance**.', 'Select **View My Attendance**.', 'Select the term.', 'Click **Search**.']), 'schedule': ('To find your class schedule:', ['Click **Enrollment**.', 'Select **My Class Schedule**.', 'Select the term.']), 'drop': ('To drop classes:', ['Click **Enrollment**.', 'Select **Enrollment: Drop Classes**.', 'Select the term.', 'Select the desired class.', 'Click **Drop Selected Classes**.', 'Click **Finish Dropping**.'])}
+PORTAL_GUIDES = {'enroll': ('To enroll in a class:', ['Click **Enrollment**.', 'Select **Enrollment: Add Class**.', 'Select the term.', 'Click **Search**.', 'Select the subject.', 'Select the class you want.', 'Click **Next**.', 'Select **Proceed to Next Step**.', 'Click **Finish Enrolling**.']), 'pay': ('To make a payment:', ['Click **Campus Finances**.', 'Select **Make Payment**.', 'Follow the steps provided on the payment page.']), 'exam': ('To request a makeup exam:', ['Click **Makeup Exam Requests**.', 'Click the arrow beside **Submit a New Request**.', 'Select your career and term.', 'Select **Click here to add a new request**.', 'Select the desired course.', 'Select **Assessment Type**, **Absence Date**, and **Excuse Reason**.', 'Enter your justification or reason in **Student Comments**.', 'Attach supporting documents.', 'Click **Submit** to initiate the request.']), 'attendance': ('To check your attendance:', ['Click **Attendance**.', 'Select **View My Attendance**.', 'Select the term.', 'Click **Search**.']), 'schedule': ('To find your class schedule:', ['Click **Enrollment**.', 'Select **My Class Schedule**.', 'Select the term.']), 'drop': ('To drop classes:', ['Click **Enrollment**.', 'Select **Enrollment: Drop Classes**.', 'Select the term.', 'Select the desired class.', 'Click **Drop Selected Classes**.', 'Click **Finish Dropping**.']), 'exam_schedule': ('To find your exam schedule:', ['Click **Self Service**.', 'Click **Enrollment**.', 'Click **My Exam Schedule**.', 'Select the term.']), 'grades': ('To view your grades:', ['Click **Self Service**.', 'Click **Enrollment**.', 'Click **View My Grades**.', 'Select the term.']), 'swap': ('To swap classes:', ['Click **Self Service**.', 'Click **Enrollment**.', 'Click **Enrollment: Swap Classes**.', 'Select the term.', 'Select the class you want to swap from your schedule.', 'Use **Class Search** to find the class you want to swap with.', 'Click **Enter**.']), 'refund': ('To request a refund:', ['Click **Self Service**.', 'Click **Campus Finances**.', 'Click **Refund Requests**.', 'Click **Refund Request Form**.', 'Enter the information.', 'Click **Submit**.']), 'appeal': ('To make a grade appeal:', ['Click **Self Service**.', 'Click **Grade Appeal**.', 'Click **Grade Appeal By Student**.', 'Enter the information.']), 'aid': ('To apply for financial aid:', ['Click **Financial Aid Applications**.', 'Click **Application Self Service**.', 'Click **Apply & Maintain Applications**.', 'Select **Apply Financial Aid**.', 'Enter the information.'])}
 
 def portal_guide(question):
     q = " ".join(re.sub(r"[^a-z0-9 ]", " ", question.lower()).split())
     how = any(x in q for x in ("how ", "where ", "steps", "guide"))
     key = None
-    if "schedule" in q or "timetable" in q:
+    if "exam" in q and ("schedule" in q or "timetable" in q):
+        key = "exam_schedule"
+    elif "appeal" in q and "grade" in q:
+        key = "appeal"
+    elif "grade" in q:
+        key = "grades"
+    elif "financial aid" in q:
+        key = "aid"
+    elif "refund" in q:
+        key = "refund"
+    elif "swap" in q and ("class" in q or "course" in q):
+        key = "swap"
+    elif "schedule" in q or "timetable" in q:
         key = "schedule"
     elif ("drop" in q or "withdraw" in q) and ("class" in q or "course" in q):
         key = "drop"
@@ -178,7 +180,7 @@ def portal_guide(question):
         key = "exam"
     elif ("attendance" in q or "absences" in q) and how and any(x in q for x in ("check", "view", "find", "see", "access")):
         key = "attendance"
-    elif any(x in q for x in ("enroll", "enrol", "register", "add class", "add a class", "add course", "add a course")) and not any(x in q for x in ("drop", "status")):
+    elif any(x in q for x in ("enroll", "enrol", "register", "registration", "add class", "add a class", "add course", "add a course")) and not any(x in q for x in ("drop", "status")):
         key = "enroll"
     elif (how and ("pay" in q or "payment" in q)) or q in ("make payment", "make a payment"):
         key = "pay"
@@ -189,6 +191,8 @@ def portal_guide(question):
 
 
 def answer_question(student_id: str, question: str):
+    if re.search(r"\b(owe|owed|balance|fees?|tuition|pay|payment|charges?|amount)\b", question.lower()) and "refund" not in question.lower():
+        return portal_guide("How do I pay?")
     guide = portal_guide(question)
     if guide:
         return guide
@@ -212,18 +216,7 @@ def answer_question(student_id: str, question: str):
         return f"You have **{total} recorded absences in total** across the attendance records shown below:\n\n{details}"
 
     if intent == "fees":
-        row = get_fee_balance(student_id)
-        if not row:
-            return "I couldn't find a fee record for your account."
-        balance = row["total_due"] - row["amount_paid"]
-        deadline = row["payment_deadline"] or "No deadline is listed"
-        return (
-            f"Your current outstanding balance is **{row['currency']} {balance:,.2f}**.\n\n"
-            f"- Total charges: {row['currency']} {row['total_due']:,.2f}\n"
-            f"- Amount paid: {row['currency']} {row['amount_paid']:,.2f}\n"
-            f"- Payment deadline: **{deadline}**\n\n"
-            "Please check your official student portal or finance office if you believe this is incorrect."
-        )
+        return portal_guide("How do I pay?")
 
     if intent == "exam":
         records = get_exam_requests(student_id, course_code)
@@ -247,7 +240,7 @@ def answer_question(student_id: str, question: str):
     return (
         "I can help you check:\n"
         "- Your recorded absences (try: “How many absences do I have?”)\n"
-        "- Your outstanding balance and payment deadline\n"
+        "- Steps to make a payment in Self Service\n"
         "- Your remake/resit exam request and professor contact deadline\n\n"
         "For this prototype, I can only answer questions supported by the sample database."
     )
@@ -350,31 +343,12 @@ SECTIONS = [
     ("Attendance", "View your attendance details", "▣"),
 ]
 
-if not st.session_state.get("student"):
-    st.markdown('<div class="portal-topbar"><span>☰ &nbsp; Main Menu</span><span class="portal-brand">ADU Self Service — Student Assistant</span><span class="portal-meta">🔒 Secure demo</span></div>', unsafe_allow_html=True)
-    _, sign_in, _ = st.columns([1, 1.2, 1], gap="large")
-    with sign_in:
-        st.markdown("### Sign in")
-        st.info("This is an unofficial concept prototype using fictional student records. Do not enter your real university password or personal information.")
-        with st.form("login_form"):
-            student_id = st.text_input("Student ID", placeholder="e.g. STU1001")
-            pin = st.text_input("Demo PIN", type="password", placeholder="e.g. 1234")
-            submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
-        st.caption("Demo accounts are listed in the project README.")
-        if submitted:
-            try:
-                student = authenticate(student_id, pin)
-                if student:
-                    st.session_state.student = student
-                    st.session_state.messages = []
-                    st.session_state.active_section = "Self Service"
-                    st.rerun()
-                else:
-                    st.error("Student ID or PIN was not recognised.")
-            except (FileNotFoundError, sqlite3.Error) as exc:
-                st.error(str(exc))
-    st.markdown('<div class="assistant-note">Unofficial educational prototype · Fictional student records · No university integration or real payment processing</div>', unsafe_allow_html=True)
-    st.stop()
+if not st.session_state.get("navigation_finance_update"):
+    st.session_state.messages = []
+    st.session_state.navigation_finance_update = True
+
+# Public prototype: use fictional records without requesting credentials.
+st.session_state.student = {"student_id": "STU1001", "full_name": "Demo Student"}
 
 student = st.session_state.student
 if "messages" not in st.session_state:
@@ -391,10 +365,9 @@ with st.sidebar:
         if st.button(section, key=f"nav_{section}", use_container_width=True):
             st.session_state.active_section = section
     st.divider()
-    st.markdown(f"**Signed in:** {student['full_name']}")
+    st.markdown(f"**Demo profile:** {student['full_name']}")
     st.caption(f"Demo account: {student['student_id']}")
-    if st.button("Sign out", use_container_width=True):
-        st.session_state.pop("student", None)
+    if st.button("Clear chat", use_container_width=True):
         st.session_state.pop("messages", None)
         st.rerun()
 
@@ -423,22 +396,14 @@ with portal_col:
             else: st.info("No attendance records found for this demo account.")
             st.caption("You can ask the ADU Assistant for your total absences or absences in a specific course.")
         elif st.session_state.active_section == "Campus Finances":
-            row = get_fee_balance(student["student_id"])
-            if row:
-                balance = row["total_due"] - row["amount_paid"]
-                c1,c2,c3 = st.columns(3)
-                c1.metric("Outstanding balance", f'{row["currency"]} {balance:,.2f}')
-                c2.metric("Total charges", f'{row["currency"]} {row["total_due"]:,.2f}')
-                c3.metric("Amount paid", f'{row["currency"]} {row["amount_paid"]:,.2f}')
-                st.info(f'Payment deadline: **{row["payment_deadline"]}**')
-            else: st.info("No finance record found for this demo account.")
+            st.markdown(portal_guide("How do I pay?"))
         elif st.session_state.active_section == "Make Up Exam Requests":
             records = get_exam_requests(student["student_id"])
             if records:
                 st.dataframe([{"Course":r["course_code"],"Course name":r["course_name"],"Status":r["status"],"Professor":r["professor_name"],"Contact deadline":r["contact_deadline"]} for r in records], use_container_width=True, hide_index=True)
             else: st.info("No make-up exam requests found for this demo account.")
         else:
-            st.info("This portal section is represented for navigation and visual demonstration. Ask the ADU Assistant about attendance, fees, payment deadlines, or make-up exam requests.")
+            st.info("This portal section is represented for navigation and visual demonstration. Ask the ADU Assistant about attendance, payment steps, or make-up exam requests.")
         if st.button("← Back to Self Service"):
             st.session_state.active_section = "Self Service"
             st.rerun()
@@ -450,17 +415,17 @@ with assistant_col:
             st.markdown("**Hello! How can I help you today?**")
             st.caption("I can look up information from your fictional demo student record.")
             st.markdown("Try asking:")
-            st.markdown("- How many absences do I have?\n- How much do I owe?\n- When is my payment deadline?\n- Was my make-up exam approved?")
+            st.markdown("- How many absences do I have?\n- How do I pay?\n- How do I request a refund?\n- Was my make-up exam approved?")
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
     st.caption("Suggested questions")
     quick_cols = st.columns(2)
-    quick_questions = ["All absences", "Class schedule", "Balance", "Payment"]
+    quick_questions = ["All absences", "Class schedule", "Registration", "Payment"]
     for col, q in zip(quick_cols * 2, quick_questions):
         with col:
             if st.button(q, key=f"quick_{q}", use_container_width=True):
-                mapped = {"All absences":"How many absences do I have?", "Class schedule":"How do I find my class schedule?", "Balance":"How much do I owe?", "Payment":"How do I pay?"}
+                mapped = {"All absences":"How many absences do I have?", "Class schedule":"How do I find my class schedule?", "Registration":"Where do I register?", "Payment":"How do I pay?"}
                 st.session_state.pending_question = mapped[q]
                 st.rerun()
     question = st.chat_input("Ask ADU Assistant...")
