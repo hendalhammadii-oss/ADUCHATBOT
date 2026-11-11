@@ -249,6 +249,10 @@ html, body, [class*="css"] { font-family: Inter, sans-serif; }
 .block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 820px; }
 header[data-testid="stHeader"] { background: transparent; }
 .portal-topbar { background: linear-gradient(100deg,#172b3d,#233c52); color: white; padding: 13px 22px; border-radius: 8px; display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; box-shadow:0 2px 8px #0c22331a; }
+.portal-topbar { position:relative; min-height:48px; box-sizing:border-box; gap:12px; }
+.portal-topbar .portal-brand { flex:1; text-align:center; padding-left:110px; }
+.portal-topbar .portal-meta { width:110px; text-align:right; flex-shrink:0; }
+@media (max-width:600px) { .portal-topbar {flex-wrap:wrap; justify-content:center;} .portal-topbar .portal-brand {padding-left:0; flex-basis:100%;} .portal-topbar .portal-meta {width:auto; text-align:center;} }
 .portal-brand { font-weight:700; letter-spacing:.2px; font-size:16px; }
 .portal-meta { color:#d6e3ef; font-size:12px; }
 .breadcrumb { color:color-mix(in srgb, var(--text-color) 82%, #287ac5); font-size:13px; margin:4px 0 8px; }
@@ -314,6 +318,14 @@ footer {visibility:hidden;}
 student = {"student_id": "STU1001", "full_name": "Demo Student"}
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+st.markdown(
+    '<div class="portal-topbar">'
+    '<span class="portal-brand">ADU Self Service — Student Assistant</span>'
+    '<span class="portal-meta">Demo Student &nbsp; · &nbsp; 🔒</span>'
+    '</div>',
+    unsafe_allow_html=True,
+)
 
 with st.container():
     st.markdown('<div class="assistant-head"><div class="assistant-title">✦ ADU Assistant</div><div class="assistant-sub">Student Self Service · Demo</div></div>', unsafe_allow_html=True)
