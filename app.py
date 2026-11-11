@@ -29,23 +29,6 @@ def open_read_only_db():
     return conn
 
 
-def authenticate(student_id: str, pin: str):
-    """Demo authentication. In production, use the university's SSO/identity provider."""
-    student_id = student_id.strip().upper()
-    with open_read_only_db() as conn:
-        row = conn.execute(
-            "SELECT student_id, full_name, pin_sha256 FROM students WHERE student_id = ?",
-            (student_id,),
-        ).fetchone()
-    if not row:
-        return None
-    import hashlib
-    candidate_hash = hashlib.sha256(pin.encode("utf-8")).hexdigest()
-    if candidate_hash != row["pin_sha256"]:
-        return None
-    return {"student_id": row["student_id"], "full_name": row["full_name"]}
-
-
 def classify_with_ollama(question: str):
     if not OLLAMA_ENABLED:
         return None
@@ -112,7 +95,7 @@ def classify_fallback(question: str):
 
 
 def get_absences(student_id: str, course_code=None):
-    # student_id always comes from the authenticated session, never from the AI.
+    # Student ID is fixed to a fictional demo profile, never supplied by the AI.
     with open_read_only_db() as conn:
         if course_code:
             rows = conn.execute(
@@ -246,7 +229,7 @@ def answer_question(student_id: str, question: str):
     )
 
 
-st.set_page_config(page_title="ADU Self Service | Student Assistant", page_icon="🎓", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="ADU Self Service | Student Assistant", page_icon="🎓", layout="centered", initial_sidebar_state="collapsed")
 
 # Resolve colors from Streamlit's selected theme, including Settings > Theme.
 dark_mode = st.context.theme.type == "dark"
@@ -263,7 +246,7 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 html, body, [class*="css"] { font-family: Inter, sans-serif; }
 .stApp { background: var(--background-color); color: var(--text-color); }
-.block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 1600px; }
+.block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 820px; }
 header[data-testid="stHeader"] { background: transparent; }
 .portal-topbar { background: linear-gradient(100deg,#172b3d,#233c52); color: white; padding: 13px 22px; border-radius: 8px; display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; box-shadow:0 2px 8px #0c22331a; }
 .portal-brand { font-weight:700; letter-spacing:.2px; font-size:16px; }
@@ -327,93 +310,17 @@ footer {visibility:hidden;}
     .replace("BUTTON_BORDER", palette["border"])
     .replace("BUTTON_HOVER", palette["hover"]), unsafe_allow_html=True)
 
-SECTIONS = [
-    ("Student Center", "Manage school-related activities", "▣"),
-    ("Gradebook", "Assignments, due dates and grades", "▤"),
-    ("Class Search / Browse Catalog", "Find classes and browse the course catalog", "▱"),
-    ("Academic Planning", "Build your academic plan", "▦"),
-    ("Enrollment", "View appointments and enroll in classes", "▣"),
-    ("Make Up Exam Requests", "Submit and track make-up exam requests", "▤"),
-    ("Registration Support Services", "Document requests and registration support", "▱"),
-    ("Campus Finances", "View your account and payment information", "▧"),
-    ("Campus Personal Information", "Maintain personal information", "▣"),
-    ("Academic Records", "View grades and request transcripts", "▤"),
-    ("Degree Progress/Graduation", "Review degree progress and graduation", "▦"),
-    ("Grade Appeal", "View and submit grade appeals", "▱"),
-    ("Attendance", "View your attendance details", "▣"),
-]
-
-if not st.session_state.get("navigation_finance_update"):
-    st.session_state.messages = []
-    st.session_state.navigation_finance_update = True
-
-# Public prototype: use fictional records without requesting credentials.
-st.session_state.student = {"student_id": "STU1001", "full_name": "Demo Student"}
-
-student = st.session_state.student
+# Open directly into the centered chatbot.
+student = {"student_id": "STU1001", "full_name": "Demo Student"}
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "active_section" not in st.session_state:
-    st.session_state.active_section = "Self Service"
 
-with st.sidebar:
-    st.markdown("### Menu")
-    st.text_input("Search menu", placeholder="Search menu", key="menu_search")
-    st.markdown("**My Favorites**")
-    st.markdown("**Self Service**")
-    for section, _, _ in SECTIONS:
-        if st.button(section, key=f"nav_{section}", use_container_width=True):
-            st.session_state.active_section = section
-    st.divider()
-    st.markdown(f"**Demo profile:** {student['full_name']}")
-    st.caption(f"Demo account: {student['student_id']}")
-    if st.button("Clear chat", use_container_width=True):
-        st.session_state.pop("messages", None)
-        st.rerun()
-
-st.markdown(f'<div class="portal-topbar"><span>☰ &nbsp; Main Menu</span><span class="portal-brand">ADU Self Service — Student Assistant</span><span class="portal-meta">{student["full_name"]} &nbsp; · &nbsp; 🔒</span></div>', unsafe_allow_html=True)
-st.markdown(f'<div class="breadcrumb">Main Menu &gt; Self Service &gt; {st.session_state.active_section}</div>', unsafe_allow_html=True)
-
-portal_col, assistant_col = st.columns([1.8, 1], gap="large")
-with portal_col:
-    if st.session_state.active_section == "Self Service":
-        st.markdown('<div class="section-heading">Self Service</div><div class="section-subtitle">Select an option to manage school-related activities.</div>', unsafe_allow_html=True)
-        for i in range(0, len(SECTIONS), 3):
-            cols = st.columns(3, gap="small")
-            for col, item in zip(cols, SECTIONS[i:i+3]):
-                with col:
-                    st.markdown(f'<div class="tile"><div class="tile-title"><span class="tile-icon">{item[2]}</span>{item[0]}</div><div class="tile-desc">{item[1]}<br><br>Select to view information.</div></div>', unsafe_allow_html=True)
-                    if st.button(f"Open {item[0]}", key=f"open_{item[0]}", use_container_width=True):
-                        st.session_state.active_section = item[0]
-                        st.rerun()
-    else:
-        section = next((x for x in SECTIONS if x[0] == st.session_state.active_section), None)
-        st.markdown(f'<div class="section-heading">{st.session_state.active_section}</div><div class="section-subtitle">{section[1] if section else "Student self-service information"}</div>', unsafe_allow_html=True)
-        if st.session_state.active_section == "Attendance":
-            rows = get_absences(student["student_id"])
-            if rows:
-                st.dataframe([{"Course":r["course_code"],"Course name":r["course_name"],"Semester":r["semester"],"Absences":r["absences"]} for r in rows], use_container_width=True, hide_index=True)
-            else: st.info("No attendance records found for this demo account.")
-            st.caption("You can ask the ADU Assistant for your total absences or absences in a specific course.")
-        elif st.session_state.active_section == "Campus Finances":
-            st.markdown(portal_guide("How do I pay?"))
-        elif st.session_state.active_section == "Make Up Exam Requests":
-            records = get_exam_requests(student["student_id"])
-            if records:
-                st.dataframe([{"Course":r["course_code"],"Course name":r["course_name"],"Status":r["status"],"Professor":r["professor_name"],"Contact deadline":r["contact_deadline"]} for r in records], use_container_width=True, hide_index=True)
-            else: st.info("No make-up exam requests found for this demo account.")
-        else:
-            st.info("This portal section is represented for navigation and visual demonstration. Ask the ADU Assistant about attendance, payment steps, or make-up exam requests.")
-        if st.button("← Back to Self Service"):
-            st.session_state.active_section = "Self Service"
-            st.rerun()
-
-with assistant_col:
+with st.container():
     st.markdown('<div class="assistant-head"><div class="assistant-title">✦ ADU Assistant</div><div class="assistant-sub">Student Self Service · Demo</div></div>', unsafe_allow_html=True)
     with st.container(height=490, border=True):
         if not st.session_state.messages:
             st.markdown("**Hello! How can I help you today?**")
-            st.caption("I can look up information from your fictional demo student record.")
+            st.caption("Ask me how to use university Self Service, including registration, schedules, payments, and requests.")
             st.markdown("Try asking:")
             st.markdown("- How many absences do I have?\n- How do I pay?\n- How do I request a refund?\n- Was my make-up exam approved?")
         for message in st.session_state.messages:
@@ -437,4 +344,4 @@ with assistant_col:
         st.session_state.messages.append({"role":"assistant","content":answer})
         st.rerun()
 
-st.markdown('<div class="assistant-note">Unofficial educational prototype · Fictional student records · No university integration or real payment processing</div>', unsafe_allow_html=True)
+
